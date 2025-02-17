@@ -1,0 +1,85 @@
+operations = [
+        migrations.RunSQL("""
+DELIMITER $$
+CREATE  PROCEDURE `GetAgentAnnualPayment`(IN `agentid` INT, IN `insuranceId` INT, IN `ye` INT)
+BEGIN
+	select sum(p.january) january, sum(p.february) february, sum(p.march) march,
+	sum(p.april) april, sum(p.may) may, sum(p.june) june,
+	sum(p.july) july, sum(p.august) august,	sum(p.september) september,
+	sum(p.october) october, sum(p.november) november, sum(p.dicember) dicember
+        from payments p
+        where p.fecha = ye
+        and p.id_agent = agentid
+        and p.id_client in (select c.id from client c WHERE c.id_insured = insuranceId);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE  PROCEDURE `GetAnnualPayments`(IN `insuranceId` INT, IN `ye` INT)
+BEGIN
+	select sum(p.january) january, sum(p.february) february, sum(p.march) march,
+	sum(p.april) april, sum(p.may) may, sum(p.june) june,
+	sum(p.july) july, sum(p.august) august,	sum(p.september) september,
+	sum(p.october) october, sum(p.november) november, sum(p.dicember) dicember
+        from payments p
+        where p.fecha = ye
+        and p.id_client in (select c.id from client c WHERE c.id_insured = insuranceId);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE  PROCEDURE `GetAnnualPaymentsGlobal`(in insuranceId int, in ye int)
+BEGIN
+	SELECT p.month, sum(p.commission)c FROM `payments_global` p 
+	where p.id_insured = insuranceId
+    and p.pyear = ye
+    group by p.month;
+END$$
+DELIMITER ;
+
+
+DELIMITER $$
+CREATE  PROCEDURE `GetBobByAgent`(IN `agentid` INT)
+BEGIN
+	select *
+        from bob_global b
+        where b.suscriberid in (select c.suscriberid from client c WHERE c.id_agent = agentid);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE  PROCEDURE `GetClientDataTableAdmin`(IN `insuredid` INT, IN `year` INT)
+Select 
+COUNT(c.id) as policies,
+SUM(c.family_menber) as members,
+COUNT(CASE WHEN c.suscriberid = 'N/A' THEN c.suscriberid END) as nosub
+FROM client c
+WHERE c.id_insured=insuredid AND SUBSTRING(c.aplication_date,1,4)=year AND c.borrado <> 1$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE  PROCEDURE `GetClientDataTableAgent`(IN `insuredid` INT, IN `year` INT, IN `agentid` INT)
+Select 
+COUNT(c.id) as policies,
+SUM(c.family_menber) as members,
+COUNT(CASE WHEN c.suscriberid = 'N/A' THEN c.suscriberid END) as nosub
+FROM client c
+WHERE c.id_insured=insuredid AND SUBSTRING(c.aplication_date,1,4)=year AND c.borrado <> 1 AND c.id_agent=agentid$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE  PROCEDURE `GetClientDataTableAssistant`(IN `insuredid` INT, IN `year` CHAR(4), IN `assistantid` INT)
+Select 
+COUNT(c.id) as policies,
+SUM(c.family_menber) as members,
+COUNT(CASE WHEN c.suscriberid = 'N/A' THEN c.suscriberid END) as nosub
+FROM client c
+WHERE c.id_insured=insuredid AND SUBSTRING(c.aplication_date,1,4)=year AND c.borrado <> 1 
+AND c.id_agent in (SELECT id from agent where id_assistant=assistantid)$$
+DELIMITER ;
+""",reverse_sql="""
+            
+        """
+        ),
+
+    ]

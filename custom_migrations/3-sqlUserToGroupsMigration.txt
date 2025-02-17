@@ -1,0 +1,49 @@
+
+    operations = [
+        migrations.RunSQL("""
+            INSERT into customauth_customuser_groups (id,customuser_id,group_id) 
+            Select NULL, id, 1 from customauth_customuser cc where cc.is_agent=1
+        """,reverse_sql="""
+            Delete from customauth_customuser_groups WHERE group_id=1
+        """),
+        migrations.RunSQL("""
+            INSERT into customauth_customuser_groups (id,customuser_id,group_id) 
+            Select NULL, id, 2 from customauth_customuser cc where cc.is_assistant=1
+        """,reverse_sql="""
+            Delete from customauth_customuser_groups WHERE group_id=2
+        """),
+        migrations.RunSQL("""
+            INSERT into customauth_customuser_groups (id,customuser_id,group_id) 
+            Select NULL, id, 3 from customauth_customuser cc where cc.is_subassistant=1
+        """,reverse_sql="""
+            Delete from customauth_customuser_groups WHERE group_id=3
+        """),
+        migrations.RunSQL("""
+            INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES (NULL, 'content', 'utility');
+            INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES (NULL, 'content', 'reports');
+            INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES (NULL, 'content', 'apps');
+            INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES (NULL, 'content', 'dashboard');
+            INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES (NULL, 'content', 'secondaryagent');
+            INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES (NULL, 'content', 'problem');
+            INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES (NULL, 'content', 'agenttaxdocument');
+        """,reverse_sql="""
+            Delete from django_content_type WHERE id=76;
+            Delete from django_content_type WHERE id=77;
+            Delete from django_content_type WHERE id=78;
+            Delete from django_content_type WHERE id=79;
+            Delete from django_content_type WHERE id=81;
+        """),
+       migrations.RunSQL("""
+            INSERT INTO `commissions_group` (`id`, `names`) VALUES (1, 'Agent with Assistant');
+            INSERT INTO `commissions_group` (`id`, `names`) VALUES (2, 'Agent without Assistant');
+        """,reverse_sql="""
+            Delete from commissions_group WHERE id=1;
+            Delete from commissions_group WHERE id=2;
+        """)
+       migrations.RunSQL("""
+            update agent a set a.id_commission_group = 1 where a.id_assistant <> 0 and a.id_assistant is not null;
+            update agent a set a.id_commission_group = 2 where a.id_commission_group is null;
+        """,reverse_sql="""
+            update agent a set a.id_commission_group = null;
+        """)
+    ]
